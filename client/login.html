@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login & Signup</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -15,7 +15,7 @@
             height: 100vh;
             margin: 0;
         }
-        .login-container {
+        .container {
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -32,7 +32,7 @@
             margin-bottom: 8px;
             font-weight: 600;
         }
-        input[type="text"], input[type="password"] {
+        input[type="text"], input[type="password"], input[type="email"] {
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
@@ -57,31 +57,75 @@
             text-align: center;
             display: none;
         }
+        .switch-link {
+            text-align: center;
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+        .switch-link:hover {
+            color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <div>
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required />
-            </div>
-            <div>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required />
-            </div>
-            <button type="submit" class="btn">Login</button>
-            <div id="errorMessage" class="error-message">Invalid username or password.</div>
-        </form>
+    <div class="container">
+        <div id="loginFormContainer">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div>
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" name="username" required />
+                </div>
+                <div>
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" required />
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <div id="loginErrorMessage" class="error-message">Invalid username or password.</div>
+            </form>
+            <p class="switch-link" onclick="toggleForm('signup')">Don't have an account? Signup here</p>
+        </div>
+
+        <div id="signupFormContainer" style="display: none;">
+            <h2>Signup</h2>
+            <form id="signupForm">
+                <div>
+                    <label for="signupUsername">Username</label>
+                    <input type="text" id="signupUsername" name="username" required />
+                </div>
+                <div>
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" name="email" required />
+                </div>
+                <div>
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" name="password" required />
+                </div>
+                <button type="submit" class="btn">Signup</button>
+                <div id="signupErrorMessage" class="error-message">Error in signing up, please try again.</div>
+            </form>
+            <p class="switch-link" onclick="toggleForm('login')">Already have an account? Login here</p>
+        </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+        function toggleForm(formType) {
+            if (formType === 'signup') {
+                document.getElementById('loginFormContainer').style.display = 'none';
+                document.getElementById('signupFormContainer').style.display = 'block';
+            } else {
+                document.getElementById('loginFormContainer').style.display = 'block';
+                document.getElementById('signupFormContainer').style.display = 'none';
+            }
+        }
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
 
             try {
                 const response = await fetch(`http://localhost:5000/searchUserName/${password}`, {
@@ -93,15 +137,46 @@
 
                 const data = await response.json();
                 if (data.data.length > 0) {
-                    // Successfully logged in
-                    window.location.href = '/dashboard';  // Redirect to another page on success
+                    window.location.href = '/dashboard'; // Redirect to dashboard on success
                 } else {
-                    // Display error message
-                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('loginErrorMessage').style.display = 'block';
                 }
             } catch (err) {
                 console.error('Error:', err);
-                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('loginErrorMessage').style.display = 'block';
+            }
+        });
+
+        // Signup form submission
+        document.getElementById('signupForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: username,
+                        pass: password,
+                    }),
+                });
+
+                const data = await response.json();
+                if (data.data) {
+                    alert('Signup successful!');
+                    toggleForm('login');
+                } else {
+                    document.getElementById('signupErrorMessage').style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                document.getElementById('signupErrorMessage').style.display = 'block';
             }
         });
     </script>
